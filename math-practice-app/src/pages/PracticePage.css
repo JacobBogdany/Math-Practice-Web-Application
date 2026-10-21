@@ -4,8 +4,28 @@
   gap: var(--space-lg);
 }
 
+.practice-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.practice-page__card-area {
+  transition: opacity var(--transition-fast);
+}
+
+.practice-page__card-area--transitioning {
+  opacity: 0.65;
+}
+
 .practice-page__actions {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-page__card-area--transitioning {
+    opacity: 1;
+  }
 }

@@ -78,7 +78,7 @@ describe('QuestionCard', () => {
     await user.click(screen.getByRole('button', { name: /flip card/i }));
     await user.click(screen.getByRole('button', { name: /i got it right/i }));
 
-    expect(onResult).toHaveBeenCalledWith(true);
+    expect(onResult).toHaveBeenCalledWith(true, 54);
     expect(
       screen.getByRole('button', { name: /i got it wrong/i }),
     ).toBeDisabled();

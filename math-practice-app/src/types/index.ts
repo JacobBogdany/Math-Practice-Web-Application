@@ -26,3 +26,10 @@ export { DEFAULT_APP_SETTINGS } from './settings';
 export type { PracticeSetupConfig } from './practiceSetup';
 export { isValidPracticeSetupConfig } from './practiceSetup';
 
+export type { SessionSummaryState } from './sessionSummary';
+export {
+  calculateAccuracy,
+  countMistakeReviewAttempts,
+  isValidSessionSummaryState,
+  sessionToPracticeSetup,
+} from './sessionSummary';

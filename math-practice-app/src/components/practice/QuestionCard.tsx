@@ -10,7 +10,7 @@ export interface QuestionCardProps {
   questionNumber: number;
   totalQuestions: number | 'continuous';
   cardAnimationEnabled?: boolean;
-  onResult: (selfReportedCorrect: boolean) => void;
+  onResult: (selfReportedCorrect: boolean, selectedAnswer: number) => void;
 }
 
 export function QuestionCard({
@@ -45,7 +45,7 @@ export function QuestionCard({
       return;
     }
     setResultRecorded(true);
-    onResult(selfReportedCorrect);
+    onResult(selfReportedCorrect, selectedAnswer);
   }
 
   const innerClassName = [

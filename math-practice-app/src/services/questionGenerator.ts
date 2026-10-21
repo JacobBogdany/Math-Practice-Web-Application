@@ -1,4 +1,5 @@
 import type { DifficultyLevel, MathOperation, Question } from '../types';
+import { getQuestionSignature } from '../utils/questionSignature';
 import { validateQuestion } from '../utils/validation';
 import { generateAdditionQuestion } from './generators/addition';
 import { generateDivisionQuestion } from './generators/division';
@@ -7,6 +8,9 @@ import { generateSubtractionQuestion } from './generators/subtraction';
 import { randomInt } from '../utils/math';
 
 const MAX_GENERATION_ATTEMPTS = 10;
+const MAX_UNIQUE_GENERATION_ATTEMPTS = 30;
+
+export { getQuestionSignature };
 
 const OPERATION_GENERATORS: Record<
   MathOperation,
@@ -41,9 +45,24 @@ export function generateQuestion(
 export function generateQuestionFromOperations(
   operations: MathOperation[],
   difficulty: DifficultyLevel,
+  excludeSignatures: string[] = [],
 ): Question {
   if (operations.length === 0) {
     throw new Error('At least one operation is required');
+  }
+
+  for (
+    let attempt = 0;
+    attempt < MAX_UNIQUE_GENERATION_ATTEMPTS;
+    attempt += 1
+  ) {
+    const operation = operations[randomInt(0, operations.length - 1)];
+    const question = generateQuestion(operation, difficulty);
+    const signature = getQuestionSignature(question);
+
+    if (!excludeSignatures.includes(signature)) {
+      return question;
+    }
   }
 
   const operation = operations[randomInt(0, operations.length - 1)];

@@ -1,10 +1,13 @@
 import { BrowserRouter } from 'react-router-dom';
+import { AppSettingsProvider } from '../context/AppSettingsProvider';
 import { AppRoutes } from './AppRoutes';
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AppSettingsProvider>
+        <AppRoutes />
+      </AppSettingsProvider>
     </BrowserRouter>
   );
 }
