@@ -354,6 +354,20 @@ export function SettingsPage() {
         </Button>
       </section>
 
+      {/* Privacy & Storage Info */}
+      <section className="settings-section" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading" className="settings-section__title">
+          Privacy &amp; Storage
+        </h2>
+        <p className="settings-section__hint">
+          All settings, practice sessions, mistake patterns, and statistics are
+          kept completely private and stored directly in your web browser. No
+          personal information is collected or sent across the internet. Please
+          note that clearing your browser data or website cache will reset your
+          saved progress.
+        </p>
+      </section>
+
       {/* Danger Zone: Clear All Application Data */}
       <section
         className="settings-section settings-section--danger"

@@ -86,4 +86,33 @@ describe('QuestionCard', () => {
     await user.click(screen.getByRole('button', { name: /i got it wrong/i }));
     expect(onResult).toHaveBeenCalledTimes(1);
   });
+
+  it('supports full keyboard navigation with keys 1-4, space to flip, and 1/2 for right/wrong', async () => {
+    const user = userEvent.setup();
+    const onResult = vi.fn();
+
+    render(
+      <QuestionCard
+        question={sampleQuestion}
+        questionNumber={2}
+        totalQuestions={5}
+        cardAnimationEnabled={false}
+        onResult={onResult}
+      />,
+    );
+
+    // Press '3' to select choice 3 (56)
+    await user.keyboard('3');
+    expect(
+      screen.getByRole('button', { name: /answer choice 3: 56/i }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    // Press Space to flip
+    await user.keyboard(' ');
+    expect(screen.getByText('7 × 8 = 56')).toBeInTheDocument();
+
+    // Press '1' to self-report right
+    await user.keyboard('1');
+    expect(onResult).toHaveBeenCalledWith(true, 56);
+  });
 });

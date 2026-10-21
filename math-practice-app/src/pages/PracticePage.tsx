@@ -6,6 +6,7 @@ import { ProgressBar } from '../components/practice/ProgressBar';
 import { QuestionCard } from '../components/practice/QuestionCard';
 import { useAppSettings } from '../context/useAppSettings';
 import { usePracticeSession } from '../hooks/usePracticeSession';
+import { loadActivePracticeSession } from '../services/storage/practiceDataStore';
 import type { PracticeSetupConfig } from '../types/practiceSetup';
 import { isValidPracticeSetupConfig } from '../types/practiceSetup';
 import './PracticePage.css';
@@ -13,7 +14,12 @@ import './PracticePage.css';
 export function PracticePage() {
   const location = useLocation();
   const config = location.state;
-  const setupConfig = isValidPracticeSetupConfig(config) ? config : null;
+  const restoredSession = !config ? loadActivePracticeSession() : null;
+  const setupConfig = isValidPracticeSetupConfig(config)
+    ? config
+    : restoredSession && isValidPracticeSetupConfig(restoredSession.config)
+      ? restoredSession.config
+      : null;
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   if (!setupConfig) {
@@ -92,11 +98,9 @@ function PracticeSessionContent({
       </div>
 
       <div className="practice-page__actions">
-        {isContinuous ? (
-          <Button variant="coral" block onClick={onOpenEndConfirm}>
-            End Session
-          </Button>
-        ) : null}
+        <Button variant="coral" block onClick={onOpenEndConfirm}>
+          End Session
+        </Button>
       </div>
 
       {showEndConfirm ? (

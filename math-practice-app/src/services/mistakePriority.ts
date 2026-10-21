@@ -51,4 +51,3 @@ export function prioritizeMistakePatterns(
     })
     .map((item) => item.pattern);
 }
-

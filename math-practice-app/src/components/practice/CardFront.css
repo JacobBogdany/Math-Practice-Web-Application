@@ -26,6 +26,12 @@
   gap: var(--space-sm);
 }
 
+.card-front__shortcut-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
 @media (max-width: 479px) {
   .card-front__choices {
     grid-template-columns: 1fr;

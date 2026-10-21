@@ -56,6 +56,9 @@ export function CardFront({
       >
         Flip Card
       </Button>
+      <p className="card-front__shortcut-hint">
+        Tip: Keys 1–4 to choose • Space or Enter to flip
+      </p>
     </div>
   );
 }

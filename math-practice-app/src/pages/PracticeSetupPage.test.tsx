@@ -183,6 +183,11 @@ describe('PracticeSetupPage', () => {
 });
 
 describe('Practice session flow', () => {
+  beforeEach(() => {
+    setStorageAdapter(new MemoryStorage());
+    resetPracticeDataStoreForTests();
+  });
+
   it('passes setup configuration to the practice session page', async () => {
     const user = userEvent.setup();
 
@@ -202,7 +207,9 @@ describe('Practice session flow', () => {
     await user.click(screen.getByRole('radio', { name: /5 questions/i }));
     await user.click(screen.getByRole('button', { name: /start session/i }));
 
-    expect(screen.getByText(/question 1 of 5/i)).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/question 1 of 5/i).length,
+    ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByRole('button', { name: /flip card/i }),
     ).toBeInTheDocument();

@@ -18,6 +18,11 @@ export function CardBack({
   onRight,
   onWrong,
 }: CardBackProps) {
+  const isMatch = selectedAnswer === question.correctAnswer;
+  const feedbackMessage = isMatch
+    ? '✨ Fantastic job! You found the answer!'
+    : '🌱 Great try! Learning from mistakes makes you smarter!';
+
   return (
     <div className="card-back">
       <p className="card-back__question" aria-label="Correct answer revealed">
@@ -27,6 +32,9 @@ export function CardBack({
         <span className="card-back__label">Your answer</span>
         <span className="card-back__value">{selectedAnswer}</span>
       </div>
+      <p className="card-back__feedback" aria-live="polite">
+        {feedbackMessage}
+      </p>
       <div className="card-back__actions">
         <Button variant="sun" block disabled={resultRecorded} onClick={onRight}>
           I Got It Right
@@ -40,6 +48,9 @@ export function CardBack({
           I Got It Wrong
         </Button>
       </div>
+      <p className="card-back__shortcut-hint">
+        Shortcuts: 1 or R for Right • 2 or W for Wrong
+      </p>
     </div>
   );
 }

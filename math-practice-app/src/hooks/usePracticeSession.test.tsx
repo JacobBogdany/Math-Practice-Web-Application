@@ -220,4 +220,30 @@ describe('usePracticeSession', () => {
     expect(patterns[0].similarCorrectCount).toBe(3);
     expect(patterns[0].mastered).toBe(true);
   });
+
+  it('restores active practice session from storage across reloads', () => {
+    const { result, unmount } = renderPracticeSession(setupConfig);
+    const firstQuestion = result.current.currentQuestion;
+
+    // Record one attempt
+    act(() => {
+      result.current.recordResult(
+        firstQuestion,
+        firstQuestion.correctAnswer,
+        true,
+      );
+    });
+
+    expect(result.current.currentQuestionIndex).toBe(2);
+    expect(result.current.session.attempted).toBe(1);
+
+    // Simulate page unmount / refresh
+    unmount();
+
+    // Re-render hook
+    const { result: restored } = renderPracticeSession(setupConfig);
+    expect(restored.current.currentQuestionIndex).toBe(2);
+    expect(restored.current.session.attempted).toBe(1);
+    expect(restored.current.attempts).toHaveLength(1);
+  });
 });

@@ -36,6 +36,11 @@
   box-shadow: var(--shadow-button);
 }
 
+.btn:focus-visible {
+  outline: 3px solid var(--color-sky-dark);
+  outline-offset: 3px;
+}
+
 .btn--block {
   width: 100%;
 }

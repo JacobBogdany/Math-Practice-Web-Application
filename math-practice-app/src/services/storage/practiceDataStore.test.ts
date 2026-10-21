@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
-import type { PracticeAttempt, PracticeSession } from '../../types';
+import type { MathOperation, PracticeAttempt, PracticeSession } from '../../types';
 import {
   clearAllApplicationData,
+  clearActivePracticeSession,
   clearPracticeHistory,
+  loadActivePracticeSession,
   loadAttempts,
   loadMistakePatterns,
   loadSessions,
@@ -11,6 +13,7 @@ import {
   recordAttemptMistake,
   recordMistakeReviewResult,
   resetPracticeDataStoreForTests,
+  saveActivePracticeSession,
   saveAttempt,
   saveSession,
   saveSettings,
@@ -184,5 +187,42 @@ describe('practiceDataStore', () => {
     clearAllApplicationData();
     resetPracticeDataStoreForTests();
     expect(loadMistakePatterns()).toHaveLength(0);
+  });
+
+  it('persists and restores active practice session state', () => {
+    expect(loadActivePracticeSession()).toBeNull();
+
+    const activeData = {
+      config: {
+        operations: ['addition'] as MathOperation[],
+        difficulty: 1 as const,
+        sessionLength: 5 as const,
+        mode: 'regular' as const,
+      },
+      session: sampleSession,
+      currentQuestion: {
+        id: 'q-1',
+        operation: 'addition' as const,
+        difficulty: 1 as const,
+        firstOperand: 2,
+        secondOperand: 3,
+        displayText: '2 + 3 = ?',
+        correctAnswer: 5,
+        choices: [4, 5, 6, 7],
+        source: 'regular' as const,
+      },
+      currentQuestionIndex: 2,
+      attempts: [],
+      recentQuestionSignatures: ['addition:2+3'],
+    };
+
+    saveActivePracticeSession(activeData);
+    const loaded = loadActivePracticeSession();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.currentQuestionIndex).toBe(2);
+    expect(loaded?.currentQuestion.id).toBe('q-1');
+
+    clearActivePracticeSession();
+    expect(loadActivePracticeSession()).toBeNull();
   });
 });

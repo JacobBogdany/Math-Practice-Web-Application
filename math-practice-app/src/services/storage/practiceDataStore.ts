@@ -6,7 +6,10 @@ import type {
   MistakePattern,
   PracticeAttempt,
   PracticeSession,
+  Question,
 } from '../../types';
+import type { PracticeSetupConfig } from '../../types/practiceSetup';
+import { isValidPracticeSetupConfig } from '../../types/practiceSetup';
 import { runStorageMigrations } from './migrations';
 import {
   MAX_STORED_ATTEMPTS,
@@ -291,6 +294,52 @@ export function recordMistakeReviewResult(
   return saveMistakePatterns(patterns);
 }
 
+export interface ActivePracticeSessionData {
+  config: PracticeSetupConfig;
+  session: PracticeSession;
+  currentQuestion: Question;
+  currentQuestionIndex: number;
+  attempts: PracticeAttempt[];
+  recentQuestionSignatures: string[];
+}
+
+export function saveActivePracticeSession(
+  data: ActivePracticeSessionData,
+): StorageWriteResult {
+  ensureMigrations();
+  return writeJsonItem(STORAGE_KEYS.activeSession, data);
+}
+
+export function loadActivePracticeSession(): ActivePracticeSessionData | null {
+  ensureMigrations();
+  const result = readJsonItem<ActivePracticeSessionData>(
+    STORAGE_KEYS.activeSession,
+  );
+
+  if (!result.success || !result.data || typeof result.data !== 'object') {
+    return null;
+  }
+
+  const { data } = result;
+  if (
+    !isValidPracticeSetupConfig(data.config) ||
+    !data.session ||
+    typeof data.session.id !== 'string' ||
+    !data.currentQuestion ||
+    typeof data.currentQuestion.id !== 'string' ||
+    typeof data.currentQuestionIndex !== 'number'
+  ) {
+    return null;
+  }
+
+  return data;
+}
+
+export function clearActivePracticeSession(): StorageWriteResult {
+  ensureMigrations();
+  return writeJsonItem(STORAGE_KEYS.activeSession, null);
+}
+
 export function clearMistakePatterns(): StorageWriteResult {
   ensureMigrations();
   memoryMistakePatterns = [];
@@ -329,6 +378,7 @@ export function clearAllApplicationData(): StorageWriteResult {
     writeJsonItem(STORAGE_KEYS.sessions, []),
     writeJsonItem(STORAGE_KEYS.attempts, []),
     writeJsonItem(STORAGE_KEYS.mistakePatterns, []),
+    writeJsonItem(STORAGE_KEYS.activeSession, null),
     writeJsonItem(STORAGE_KEYS.statistics, null),
   ];
 

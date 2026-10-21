@@ -113,4 +113,3 @@ describe('mistakePriority', () => {
     expect(sorted[3].id).toBe('pattern-D');
   });
 });
-

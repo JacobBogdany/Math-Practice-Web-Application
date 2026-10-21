@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   attempts: 'mathPractice.attempts',
   mistakePatterns: 'mathPractice.mistakePatterns',
   statistics: 'mathPractice.statistics',
+  activeSession: 'mathPractice.activeSession',
 } as const;
 
 export const MAX_STORED_SESSIONS = 100;

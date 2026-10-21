@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Question } from '../../types';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import {
+  formatQuestionProgress,
+  formatSolvedText,
+} from '../../services/generators/shared';
 import { CardBack } from './CardBack';
 import { CardFront } from './CardFront';
 import './QuestionCard.css';
@@ -26,27 +30,87 @@ export function QuestionCard({
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [resultRecorded, setResultRecorded] = useState(false);
 
-  function handleSelectAnswer(answer: number) {
-    if (isCardFlipped) {
-      return;
-    }
-    setSelectedAnswer(answer);
-  }
+  const handleSelectAnswer = useCallback(
+    (answer: number) => {
+      if (isCardFlipped) {
+        return;
+      }
+      setSelectedAnswer(answer);
+    },
+    [isCardFlipped],
+  );
 
-  function handleFlip() {
+  const handleFlip = useCallback(() => {
     if (selectedAnswer === null || isCardFlipped) {
       return;
     }
     setIsCardFlipped(true);
-  }
+  }, [isCardFlipped, selectedAnswer]);
 
-  function handleResult(selfReportedCorrect: boolean) {
-    if (resultRecorded || selectedAnswer === null) {
-      return;
+  const handleResult = useCallback(
+    (selfReportedCorrect: boolean) => {
+      if (resultRecorded || selectedAnswer === null) {
+        return;
+      }
+      setResultRecorded(true);
+      onResult(selfReportedCorrect, selectedAnswer);
+    },
+    [onResult, resultRecorded, selectedAnswer],
+  );
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (!isCardFlipped) {
+        if (['1', '2', '3', '4'].includes(event.key)) {
+          const index = parseInt(event.key, 10) - 1;
+          const choice = question.choices[index];
+          if (choice !== undefined) {
+            event.preventDefault();
+            handleSelectAnswer(choice);
+          }
+        } else if (event.key === ' ' || event.key === 'Enter') {
+          if (selectedAnswer !== null && target?.tagName !== 'BUTTON') {
+            event.preventDefault();
+            handleFlip();
+          }
+        }
+      } else if (!resultRecorded) {
+        if (['1', 'r', 'R', 'y', 'Y'].includes(event.key)) {
+          event.preventDefault();
+          handleResult(true);
+        } else if (['2', 'w', 'W', 'n', 'N'].includes(event.key)) {
+          event.preventDefault();
+          handleResult(false);
+        }
+      }
     }
-    setResultRecorded(true);
-    onResult(selfReportedCorrect, selectedAnswer);
-  }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    handleFlip,
+    handleResult,
+    handleSelectAnswer,
+    isCardFlipped,
+    question.choices,
+    resultRecorded,
+    selectedAnswer,
+  ]);
+
+  const liveAnnouncement = !isCardFlipped
+    ? `${formatQuestionProgress(questionNumber, totalQuestions)}: ${question.displayText}`
+    : `Answer revealed: ${formatSolvedText(question)}. You selected ${selectedAnswer}.`;
 
   const innerClassName = [
     'question-card__inner',
@@ -58,6 +122,9 @@ export function QuestionCard({
 
   return (
     <article className="question-card" aria-label="Practice question card">
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {liveAnnouncement}
+      </div>
       <div className="question-card__surface">
         <div className={animationsEnabled ? 'question-card__scene' : undefined}>
           <div className={innerClassName}>

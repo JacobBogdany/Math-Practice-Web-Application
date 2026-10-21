@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 import { StorageWarningBanner } from '../common/StorageWarningBanner';
 import { Header } from './Header';
 import { Navigation } from './Navigation';
@@ -12,7 +13,9 @@ export function AppLayout() {
       <Navigation />
       <main className="app-main">
         <StorageWarningBanner />
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </PageContainer>
   );

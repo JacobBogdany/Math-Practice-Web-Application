@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSettings } from '../context/useAppSettings';
 import {
+  clearActivePracticeSession,
+  loadActivePracticeSession,
   loadMistakePatterns,
   recordAttemptMistake,
   recordMistakeReviewResult,
+  saveActivePracticeSession,
   saveAttempt,
   saveSession,
 } from '../services/storage/practiceDataStore';
@@ -209,17 +212,35 @@ function practiceSessionReducer(
   }
 }
 
-export function usePracticeSession(config: PracticeSetupConfig) {
-  const navigate = useNavigate();
-  const { settings, reportStorageError } = useAppSettings();
-  const initialQuestion = useMemo(
-    () => createInitialQuestion(config),
-    [config],
-  );
-  const transitionTimerRef = useRef<number | null>(null);
-  const savedAttemptIdsRef = useRef<Set<string>>(new Set());
+function initPracticeSessionState(
+  config: PracticeSetupConfig,
+): PracticeSessionState {
+  const saved = loadActivePracticeSession();
+  const currentMode = config.mode ?? 'regular';
 
-  const [state, dispatch] = useReducer(practiceSessionReducer, {
+  if (
+    saved &&
+    saved.config &&
+    (saved.config.mode ?? 'regular') === currentMode &&
+    saved.config.difficulty === config.difficulty &&
+    saved.config.sessionLength === config.sessionLength &&
+    saved.session &&
+    !saved.session.completedAt
+  ) {
+    return {
+      session: saved.session,
+      currentQuestion: saved.currentQuestion,
+      currentQuestionIndex: saved.currentQuestionIndex,
+      attempts: saved.attempts ?? [],
+      recentQuestionSignatures: saved.recentQuestionSignatures ?? [],
+      isActive: true,
+      isTransitioning: false,
+      shouldFinish: false,
+    };
+  }
+
+  const initialQuestion = createInitialQuestion(config);
+  return {
     session: createInitialSession(config),
     currentQuestion: initialQuestion,
     currentQuestionIndex: 1,
@@ -228,12 +249,68 @@ export function usePracticeSession(config: PracticeSetupConfig) {
     isActive: true,
     isTransitioning: false,
     shouldFinish: false,
-  });
+  };
+}
+
+export function usePracticeSession(config: PracticeSetupConfig) {
+  const navigate = useNavigate();
+  const { settings, reportStorageError } = useAppSettings();
+  const transitionTimerRef = useRef<number | null>(null);
+
+  const [state, dispatch] = useReducer(
+    practiceSessionReducer,
+    config,
+    initPracticeSessionState,
+  );
+
+  const savedAttemptIdsRef = useRef<Set<string>>(
+    new Set(state.attempts.map((attempt) => attempt.id)),
+  );
+
+  useEffect(() => {
+    if (state.isActive && !state.shouldFinish) {
+      saveActivePracticeSession({
+        config,
+        session: state.session,
+        currentQuestion: state.currentQuestion,
+        currentQuestionIndex: state.currentQuestionIndex,
+        attempts: state.attempts,
+        recentQuestionSignatures: state.recentQuestionSignatures,
+      });
+    }
+  }, [
+    config,
+    state.attempts,
+    state.currentQuestion,
+    state.currentQuestionIndex,
+    state.isActive,
+    state.recentQuestionSignatures,
+    state.session,
+    state.shouldFinish,
+  ]);
+
+  useEffect(() => {
+    if (!state.isActive || state.shouldFinish) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [state.isActive, state.shouldFinish]);
 
   useEffect(() => {
     if (!state.shouldFinish) {
       return;
     }
+
+    clearActivePracticeSession();
 
     const summaryState: SessionSummaryState = {
       session: state.session,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createFallbackQuestion,
   generateQuestion,
   generateQuestionFromOperations,
   generateQuestionsForAllOperations,
@@ -53,5 +54,22 @@ describe('questionGenerator', () => {
     expect(Object.keys(questions)).toHaveLength(4);
     expect(validateQuestion(questions.addition, 2)).toBe(true);
     expect(validateQuestion(questions.division, 2)).toBe(true);
+  });
+
+  it('provides safe fallback questions for all operations without crashing', () => {
+    const operations = [
+      'addition',
+      'subtraction',
+      'multiplication',
+      'division',
+    ] as const;
+
+    for (const op of operations) {
+      const fallback = createFallbackQuestion(op, 2);
+      expect(fallback.operation).toBe(op);
+      expect(fallback.choices).toContain(fallback.correctAnswer);
+      expect(fallback.choices.length).toBe(4);
+      expect(new Set(fallback.choices).size).toBe(4);
+    }
   });
 });
