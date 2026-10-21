@@ -10,7 +10,11 @@ interface SchemaVersionRecord {
 export function readStoredSchemaVersion(): number {
   const result = readJsonItem<SchemaVersionRecord>(STORAGE_KEYS.version);
 
-  if (!result.success || !result.data || typeof result.data.version !== 'number') {
+  if (
+    !result.success ||
+    !result.data ||
+    typeof result.data.version !== 'number'
+  ) {
     return 0;
   }
 

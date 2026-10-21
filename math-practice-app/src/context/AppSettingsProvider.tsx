@@ -1,14 +1,10 @@
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
-  useCallback,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
-import {
+  clearAllApplicationData,
   loadSettings,
   saveSettings,
 } from '../services/storage/practiceDataStore';
-import type { AppSettings } from '../types/settings';
+import { DEFAULT_APP_SETTINGS, type AppSettings } from '../types/settings';
 import {
   AppSettingsContext,
   type AppSettingsContextValue,
@@ -48,6 +44,18 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const resetAllData = useCallback(() => {
+    const result = clearAllApplicationData();
+    setSettings(DEFAULT_APP_SETTINGS);
+
+    if (!result.success) {
+      setStorageWarning(getStorageWarningMessage(result.error));
+      return false;
+    }
+
+    return true;
+  }, []);
+
   const reportStorageError = useCallback(
     (error: 'unavailable' | 'quota' | 'parse' | undefined) => {
       const message = getStorageWarningMessage(error);
@@ -67,10 +75,18 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       settings,
       storageWarning,
       updateSettings,
+      resetAllData,
       reportStorageError,
       clearStorageWarning,
     }),
-    [settings, storageWarning, updateSettings, reportStorageError, clearStorageWarning],
+    [
+      settings,
+      storageWarning,
+      updateSettings,
+      resetAllData,
+      reportStorageError,
+      clearStorageWarning,
+    ],
   );
 
   return (

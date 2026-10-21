@@ -48,4 +48,3 @@ describe('questionSignature', () => {
     expect(isSameQuestion(q1, q3)).toBe(false);
   });
 });
-

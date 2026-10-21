@@ -126,3 +126,4 @@ describe('practiceDataStore', () => {
     expect(loadSettings()).toEqual(customSettings);
   });
 });
+

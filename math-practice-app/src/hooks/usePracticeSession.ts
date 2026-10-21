@@ -185,7 +185,13 @@ export function usePracticeSession(config: PracticeSetupConfig) {
     }
 
     navigate('/practice/summary', { state: summaryState, replace: true });
-  }, [navigate, reportStorageError, state.attempts, state.session, state.shouldFinish]);
+  }, [
+    navigate,
+    reportStorageError,
+    state.attempts,
+    state.session,
+    state.shouldFinish,
+  ]);
 
   useEffect(() => {
     for (const attempt of state.attempts) {

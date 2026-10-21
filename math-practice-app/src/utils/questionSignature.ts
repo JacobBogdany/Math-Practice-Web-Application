@@ -7,4 +7,3 @@ export function getQuestionSignature(question: Question): string {
 export function isSameQuestion(a: Question, b: Question): boolean {
   return getQuestionSignature(a) === getQuestionSignature(b);
 }
-

@@ -121,7 +121,9 @@ export function saveAttempt(attempt: PracticeAttempt): StorageWriteResult {
   ensureMigrations();
 
   const attempts = loadAttempts();
-  const existingIndex = attempts.findIndex((stored) => stored.id === attempt.id);
+  const existingIndex = attempts.findIndex(
+    (stored) => stored.id === attempt.id,
+  );
 
   if (existingIndex >= 0) {
     attempts[existingIndex] = attempt;
@@ -139,13 +141,11 @@ export function saveSessionAttempts(
   session: PracticeSession,
   attempts: PracticeAttempt[],
 ): StorageWriteResult {
-  let lastResult: StorageWriteResult = { success: true };
-
   for (const attempt of attempts) {
-    lastResult = saveAttempt(attempt);
+    const attemptResult = saveAttempt(attempt);
 
-    if (!lastResult.success) {
-      return lastResult;
+    if (!attemptResult.success) {
+      return attemptResult;
     }
   }
 

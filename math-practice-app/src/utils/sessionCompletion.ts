@@ -6,4 +6,3 @@ export function isFixedSessionComplete(session: PracticeSession): boolean {
     session.attempted >= session.sessionLength
   );
 }
-

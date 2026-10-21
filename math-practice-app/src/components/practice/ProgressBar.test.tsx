@@ -15,4 +15,3 @@ describe('ProgressBar', () => {
     expect(screen.getByText('3 of 10 completed')).toBeInTheDocument();
   });
 });
-

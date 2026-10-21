@@ -5,7 +5,11 @@ import {
   readStoredSchemaVersion,
   runStorageMigrations,
 } from './index';
-import { setStorageAdapter } from '../storageService';
+import {
+  readJsonItem,
+  readRawItem,
+  setStorageAdapter,
+} from '../storageService';
 
 class MemoryStorage implements Storage {
   private store = new Map<string, string>();
@@ -44,19 +48,19 @@ describe('storage migrations', () => {
     runStorageMigrations();
 
     expect(readStoredSchemaVersion()).toBe(CURRENT_SCHEMA_VERSION);
-    expect(
-      JSON.parse(localStorage.getItem(STORAGE_KEYS.version) ?? '{}'),
-    ).toEqual({
+    expect(readJsonItem(STORAGE_KEYS.version).data).toEqual({
       version: CURRENT_SCHEMA_VERSION,
     });
   });
 
   it('preserves unrelated stored data during migration', () => {
-    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ saved: true }));
+    const adapter = new MemoryStorage();
+    setStorageAdapter(adapter);
+    adapter.setItem(STORAGE_KEYS.settings, JSON.stringify({ saved: true }));
 
     runStorageMigrations();
 
-    expect(localStorage.getItem(STORAGE_KEYS.settings)).toBe(
+    expect(readRawItem(STORAGE_KEYS.settings)).toBe(
       JSON.stringify({ saved: true }),
     );
   });

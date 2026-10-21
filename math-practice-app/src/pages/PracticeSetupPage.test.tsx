@@ -1,19 +1,61 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { AppSettingsProvider } from '../context/AppSettingsProvider';
+import {
+  loadSettings,
+  resetPracticeDataStoreForTests,
+  saveSettings,
+} from '../services/storage/practiceDataStore';
+import { setStorageAdapter } from '../services/storage/storageService';
+import { DEFAULT_APP_SETTINGS } from '../types/settings';
 import { PracticePage } from './PracticePage';
 import { PracticeSetupPage } from './PracticeSetupPage';
+
+class MemoryStorage implements Storage {
+  private store = new Map<string, string>();
+
+  get length() {
+    return this.store.size;
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+
+  getItem(key: string): string | null {
+    return this.store.get(key) ?? null;
+  }
+
+  key(index: number): string | null {
+    return Array.from(this.store.keys())[index] ?? null;
+  }
+
+  removeItem(key: string): void {
+    this.store.delete(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.store.set(key, value);
+  }
+}
 
 function renderSetupPage() {
   return render(
     <MemoryRouter>
-      <PracticeSetupPage />
+      <AppSettingsProvider>
+        <PracticeSetupPage />
+      </AppSettingsProvider>
     </MemoryRouter>,
   );
 }
 
 describe('PracticeSetupPage', () => {
+  beforeEach(() => {
+    setStorageAdapter(new MemoryStorage());
+    resetPracticeDataStoreForTests();
+  });
   it('renders all setup selectors and a start button', () => {
     renderSetupPage();
 
@@ -48,6 +90,54 @@ describe('PracticeSetupPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       /please select at least one operation/i,
     );
+  });
+
+  it('loads custom defaults from application settings', () => {
+    saveSettings({
+      ...DEFAULT_APP_SETTINGS,
+      defaultOperations: ['multiplication'],
+      defaultDifficulty: 4,
+      defaultSessionLength: 20,
+    });
+
+    renderSetupPage();
+
+    expect(
+      screen.getByRole('button', { name: /multiplication/i }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /addition/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(screen.getByRole('radio', { name: /advanced/i })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /20 questions/i })).toBeChecked();
+  });
+
+  it('allows defaults to be changed for an individual session without changing settings', async () => {
+    const user = userEvent.setup();
+    saveSettings({
+      ...DEFAULT_APP_SETTINGS,
+      defaultOperations: ['multiplication'],
+      defaultDifficulty: 4,
+      defaultSessionLength: 20,
+    });
+
+    renderSetupPage();
+
+    // Select addition as well and switch difficulty to Beginner
+    await user.click(screen.getByRole('button', { name: /addition/i }));
+    await user.click(screen.getByRole('radio', { name: /beginner/i }));
+
+    expect(screen.getByRole('button', { name: /addition/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('radio', { name: /beginner/i })).toBeChecked();
+
+    // The persistent settings should remain unchanged
+    const stored = loadSettings();
+    expect(stored.defaultOperations).toEqual(['multiplication']);
+    expect(stored.defaultDifficulty).toBe(4);
   });
 });
 

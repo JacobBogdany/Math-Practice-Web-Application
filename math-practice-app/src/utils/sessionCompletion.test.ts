@@ -37,4 +37,3 @@ describe('isFixedSessionComplete', () => {
     ).toBe(false);
   });
 });
-

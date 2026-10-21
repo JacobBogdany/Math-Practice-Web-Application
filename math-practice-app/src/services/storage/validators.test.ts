@@ -19,9 +19,7 @@ describe('storage validators', () => {
 
   it('sanitizes invalid settings to defaults', () => {
     expect(sanitizeAppSettings(null)).toEqual(DEFAULT_APP_SETTINGS);
-    expect(
-      sanitizeAppSettings({ cardAnimationEnabled: false }),
-    ).toEqual({
+    expect(sanitizeAppSettings({ cardAnimationEnabled: false })).toEqual({
       ...DEFAULT_APP_SETTINGS,
       cardAnimationEnabled: false,
     });

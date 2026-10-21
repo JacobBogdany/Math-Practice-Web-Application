@@ -6,14 +6,16 @@ export interface AppSettingsContextValue {
   settings: AppSettings;
   storageWarning: string | null;
   updateSettings: (updates: Partial<AppSettings>) => void;
+  resetAllData: () => boolean;
   reportStorageError: (
     error: 'unavailable' | 'quota' | 'parse' | undefined,
   ) => void;
   clearStorageWarning: () => void;
 }
 
-export const AppSettingsContext =
-  createContext<AppSettingsContextValue | null>(null);
+export const AppSettingsContext = createContext<AppSettingsContextValue | null>(
+  null,
+);
 
 export function useAppSettings(): AppSettingsContextValue {
   const context = useContext(AppSettingsContext);
@@ -23,6 +25,7 @@ export function useAppSettings(): AppSettingsContextValue {
       settings: DEFAULT_APP_SETTINGS,
       storageWarning: null,
       updateSettings: () => {},
+      resetAllData: () => true,
       reportStorageError: () => {},
       clearStorageWarning: () => {},
     };

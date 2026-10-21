@@ -29,4 +29,3 @@ export function ProgressBar({ completed, total, label }: ProgressBarProps) {
     </div>
   );
 }
-

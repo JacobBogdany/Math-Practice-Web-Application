@@ -4,8 +4,8 @@ import { Button } from '../components/common/Button';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { ProgressBar } from '../components/practice/ProgressBar';
 import { QuestionCard } from '../components/practice/QuestionCard';
+import { useAppSettings } from '../context/useAppSettings';
 import { usePracticeSession } from '../hooks/usePracticeSession';
-import { DEFAULT_APP_SETTINGS } from '../types';
 import type { PracticeSetupConfig } from '../types/practiceSetup';
 import { isValidPracticeSetupConfig } from '../types/practiceSetup';
 import './PracticePage.css';
@@ -43,6 +43,7 @@ function PracticeSessionContent({
   onOpenEndConfirm,
   onCloseEndConfirm,
 }: PracticeSessionContentProps) {
+  const { settings } = useAppSettings();
   const {
     session,
     currentQuestion,
@@ -83,7 +84,7 @@ function PracticeSessionContent({
           question={currentQuestion}
           questionNumber={currentQuestionIndex}
           totalQuestions={totalQuestions}
-          cardAnimationEnabled={DEFAULT_APP_SETTINGS.cardAnimationEnabled}
+          cardAnimationEnabled={settings.cardAnimationEnabled}
           onResult={(selfReportedCorrect, selectedAnswer) => {
             recordResult(currentQuestion, selectedAnswer, selfReportedCorrect);
           }}

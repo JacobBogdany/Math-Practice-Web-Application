@@ -1,0 +1,32 @@
+.statistics-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.statistics-section__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-lg), 3vw, var(--text-xl));
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statistics-section__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .statistics-section__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .statistics-section__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+

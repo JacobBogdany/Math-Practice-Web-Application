@@ -1,7 +1,11 @@
 import type { AppSettings } from '../../types/settings';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
 import type { DifficultyLevel, MathOperation } from '../../types/question';
-import type { PracticeAttempt, PracticeSession, SessionLength } from '../../types/session';
+import type {
+  PracticeAttempt,
+  PracticeSession,
+  SessionLength,
+} from '../../types/session';
 
 const ALL_OPERATIONS: MathOperation[] = [
   'addition',
@@ -13,7 +17,9 @@ const ALL_OPERATIONS: MathOperation[] = [
 const SESSION_LENGTHS: SessionLength[] = [5, 10, 20, 'continuous'];
 
 function isMathOperation(value: unknown): value is MathOperation {
-  return typeof value === 'string' && ALL_OPERATIONS.includes(value as MathOperation);
+  return (
+    typeof value === 'string' && ALL_OPERATIONS.includes(value as MathOperation)
+  );
 }
 
 function isDifficultyLevel(value: unknown): value is DifficultyLevel {
@@ -22,7 +28,8 @@ function isDifficultyLevel(value: unknown): value is DifficultyLevel {
 
 function isSessionLength(value: unknown): value is SessionLength {
   return (
-    (typeof value === 'number' && SESSION_LENGTHS.includes(value as SessionLength)) ||
+    (typeof value === 'number' &&
+      SESSION_LENGTHS.includes(value as SessionLength)) ||
     value === 'continuous'
   );
 }
@@ -92,7 +99,9 @@ export function sanitizeAppSettings(value: unknown): AppSettings {
   return merged;
 }
 
-export function isValidPracticeSession(value: unknown): value is PracticeSession {
+export function isValidPracticeSession(
+  value: unknown,
+): value is PracticeSession {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -102,7 +111,8 @@ export function isValidPracticeSession(value: unknown): value is PracticeSession
   return (
     typeof session.id === 'string' &&
     typeof session.startedAt === 'string' &&
-    (session.completedAt === undefined || typeof session.completedAt === 'string') &&
+    (session.completedAt === undefined ||
+      typeof session.completedAt === 'string') &&
     Array.isArray(session.operations) &&
     session.operations.every(isMathOperation) &&
     isDifficultyLevel(session.difficulty) &&
@@ -113,7 +123,9 @@ export function isValidPracticeSession(value: unknown): value is PracticeSession
   );
 }
 
-export function isValidPracticeAttempt(value: unknown): value is PracticeAttempt {
+export function isValidPracticeAttempt(
+  value: unknown,
+): value is PracticeAttempt {
   if (!value || typeof value !== 'object') {
     return false;
   }

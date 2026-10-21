@@ -1,0 +1,38 @@
+.statistics-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.statistics-page__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  text-align: center;
+}
+
+.statistics-page__title {
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-xl), 4vw, var(--text-2xl));
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.statistics-page__message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.statistics-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.statistics-page__reset-note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+

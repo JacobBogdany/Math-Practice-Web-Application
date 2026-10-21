@@ -5,20 +5,23 @@ import { ButtonLink } from '../components/common/ButtonLink';
 import { DifficultySelector } from '../components/practice/DifficultySelector';
 import { OperationSelector } from '../components/practice/OperationSelector';
 import { SessionLengthSelector } from '../components/practice/SessionLengthSelector';
-import { DEFAULT_APP_SETTINGS } from '../types';
+import { useAppSettings } from '../context/useAppSettings';
+import type { DifficultyLevel, MathOperation, SessionLength } from '../types';
 import type { PracticeSetupConfig } from '../types/practiceSetup';
 import './PracticeSetupPage.css';
 
 export function PracticeSetupPage() {
   const navigate = useNavigate();
-  const [operations, setOperations] = useState(
-    DEFAULT_APP_SETTINGS.defaultOperations,
+  const { settings } = useAppSettings();
+
+  const [operations, setOperations] = useState<MathOperation[]>(
+    () => settings.defaultOperations,
   );
-  const [difficulty, setDifficulty] = useState(
-    DEFAULT_APP_SETTINGS.defaultDifficulty,
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>(
+    () => settings.defaultDifficulty,
   );
-  const [sessionLength, setSessionLength] = useState(
-    DEFAULT_APP_SETTINGS.defaultSessionLength,
+  const [sessionLength, setSessionLength] = useState<SessionLength>(
+    () => settings.defaultSessionLength,
   );
 
   const canStart = operations.length > 0;
