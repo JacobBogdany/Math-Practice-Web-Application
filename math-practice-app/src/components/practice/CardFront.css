@@ -1,0 +1,33 @@
+.card-front {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  text-align: center;
+}
+
+.card-front__progress {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-sky-dark);
+}
+
+.card-front__question {
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-2xl), 7vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+.card-front__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+@media (max-width: 479px) {
+  .card-front__choices {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,64 @@
+:root {
+  /* Colors — bright, cheerful palette for ages 7–12 */
+  --color-sky: #38bdf8;
+  --color-sky-dark: #0ea5e9;
+  --color-sun: #fbbf24;
+  --color-sun-dark: #f59e0b;
+  --color-coral: #fb7185;
+  --color-coral-dark: #f43f5e;
+  --color-grape: #a78bfa;
+  --color-grape-dark: #8b5cf6;
+  --color-mint: #34d399;
+  --color-mint-dark: #10b981;
+
+  --color-bg-top: #e0f2fe;
+  --color-bg-mid: #fef9c3;
+  --color-bg-bottom: #fce7f3;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  --shadow-soft: 0 4px 24px rgb(30 41 59 / 8%);
+  --shadow-lift: 0 8px 32px rgb(30 41 59 / 12%);
+  --shadow-button: 0 4px 0 rgb(0 0 0 / 15%);
+
+  /* Typography */
+  --font-display: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.75rem;
+
+  /* Spacing & shape */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-full: 9999px;
+
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+  }
+}

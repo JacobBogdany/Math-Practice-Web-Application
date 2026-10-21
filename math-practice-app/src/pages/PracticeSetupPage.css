@@ -1,0 +1,60 @@
+.practice-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.practice-setup__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lift);
+}
+
+.practice-setup__title {
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-xl), 4vw, var(--text-2xl));
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.practice-setup__message {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+}
+
+.practice-setup__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.practice-setup__validation {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgb(251 113 133 / 12%);
+  border: 2px solid var(--color-coral);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: #be123c;
+}
+
+.practice-setup__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (max-width: 479px) {
+  .practice-setup__intro,
+  .practice-setup__panel {
+    padding: var(--space-lg);
+  }
+}

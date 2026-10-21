@@ -1,0 +1,109 @@
+.math-decorations {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.math-decorations__shape {
+  position: absolute;
+  border-radius: var(--radius-full);
+  opacity: 0.35;
+}
+
+.math-decorations__shape--1 {
+  top: 8%;
+  left: 5%;
+  width: 5rem;
+  height: 5rem;
+  background: var(--color-sky);
+  animation: float-a 8s ease-in-out infinite;
+}
+
+.math-decorations__shape--2 {
+  top: 15%;
+  right: 8%;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--color-sun);
+  animation: float-b 10s ease-in-out infinite;
+}
+
+.math-decorations__shape--3 {
+  bottom: 20%;
+  left: 10%;
+  width: 4rem;
+  height: 4rem;
+  background: var(--color-coral);
+  animation: float-b 9s ease-in-out infinite reverse;
+}
+
+.math-decorations__shape--4 {
+  bottom: 12%;
+  right: 6%;
+  width: 6rem;
+  height: 6rem;
+  background: var(--color-grape);
+  animation: float-a 11s ease-in-out infinite reverse;
+}
+
+.math-decorations__symbol {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  opacity: 0.12;
+  user-select: none;
+}
+
+.math-decorations__symbol--plus {
+  top: 25%;
+  right: 18%;
+  color: var(--color-sky-dark);
+}
+
+.math-decorations__symbol--times {
+  bottom: 30%;
+  left: 15%;
+  color: var(--color-coral-dark);
+}
+
+.math-decorations__symbol--divide {
+  top: 40%;
+  left: 8%;
+  color: var(--color-grape-dark);
+}
+
+@keyframes float-a {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(8deg);
+  }
+}
+
+@keyframes float-b {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(12px) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .math-decorations__shape {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .math-decorations__shape--3,
+  .math-decorations__shape--4 {
+    display: none;
+  }
+}

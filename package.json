@@ -1,0 +1,17 @@
+{
+  "name": "math-practice",
+  "private": true,
+  "description": "Math Practice App — run scripts from the repo root",
+  "scripts": {
+    "dev": "npm run dev --prefix math-practice-app",
+    "build": "npm run build --prefix math-practice-app",
+    "preview": "npm run preview --prefix math-practice-app",
+    "test": "npm run test --prefix math-practice-app",
+    "test:watch": "npm run test:watch --prefix math-practice-app",
+    "lint": "npm run lint --prefix math-practice-app",
+    "format": "npm run format --prefix math-practice-app",
+    "format:check": "npm run format:check --prefix math-practice-app",
+    "install:app": "npm install --prefix math-practice-app"
+  }
+}
+
