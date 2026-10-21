@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
 import {
   isValidAppSettings,
+  isValidMistakePattern,
   isValidPracticeAttempt,
   isValidPracticeSession,
   sanitizeAppSettings,
+  sanitizeMistakePatterns,
   sanitizePracticeAttempts,
   sanitizePracticeSessions,
 } from './validators';
@@ -65,5 +67,26 @@ describe('storage validators', () => {
 
     expect(attempts).toHaveLength(1);
     expect(isValidPracticeAttempt(attempts[0])).toBe(true);
+  });
+
+  it('filters invalid mistake patterns from stored arrays', () => {
+    const patterns = sanitizeMistakePatterns([
+      {
+        id: 'pattern-1',
+        operation: 'multiplication',
+        firstOperand: 7,
+        secondOperand: 8,
+        correctAnswer: 56,
+        difficulty: 2,
+        incorrectCount: 2,
+        similarCorrectCount: 1,
+        lastIncorrectAt: '2026-01-01T00:00:00.000Z',
+        mastered: false,
+      },
+      { id: 'broken' },
+    ]);
+
+    expect(patterns).toHaveLength(1);
+    expect(isValidMistakePattern(patterns[0])).toBe(true);
   });
 });

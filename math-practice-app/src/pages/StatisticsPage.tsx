@@ -3,15 +3,26 @@ import { Button } from '../components/common/Button';
 import { ButtonLink } from '../components/common/ButtonLink';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { DifficultyStatisticsSection } from '../components/statistics/DifficultyStatisticsSection';
+import { MistakeDetailsSection } from '../components/statistics/MistakeDetailsSection';
+import { MistakeStatisticsSection } from '../components/statistics/MistakeStatisticsSection';
 import { OperationStatisticsSection } from '../components/statistics/OperationStatisticsSection';
 import { RecentSessionsList } from '../components/statistics/RecentSessionsList';
 import { StatisticsOverview } from '../components/statistics/StatisticsOverview';
+import { useAppSettings } from '../context/useAppSettings';
 import { useStatistics } from '../hooks/useStatistics';
 import './StatisticsPage.css';
 
 export function StatisticsPage() {
-  const { statistics, sessions, hasAttempts, resetStatistics } =
-    useStatistics();
+  const { settings } = useAppSettings();
+  const {
+    statistics,
+    mistakeStatistics,
+    mistakePatterns,
+    sessions,
+    hasAttempts,
+    hasMistakes,
+    resetStatistics,
+  } = useStatistics();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   return (
@@ -24,12 +35,17 @@ export function StatisticsPage() {
           Statistics
         </h1>
         <p className="statistics-page__message">
-          See how you are doing overall, by operation, by difficulty, and across
-          recent sessions.
+          See how you are doing overall, by operation, by difficulty, across
+          mistake reviews, and in recent sessions.
         </p>
       </section>
 
       <StatisticsOverview statistics={statistics} />
+      <MistakeStatisticsSection mistakeStatistics={mistakeStatistics} />
+      <MistakeDetailsSection
+        patterns={mistakePatterns}
+        masteryThreshold={settings.masteryThreshold}
+      />
       <OperationStatisticsSection statistics={statistics} />
       <DifficultyStatisticsSection statistics={statistics} />
       <RecentSessionsList sessions={sessions} />
@@ -41,7 +57,7 @@ export function StatisticsPage() {
         <Button
           variant="coral"
           block
-          disabled={!hasAttempts}
+          disabled={!hasAttempts && !hasMistakes}
           onClick={() => setShowResetConfirm(true)}
         >
           Reset Statistics

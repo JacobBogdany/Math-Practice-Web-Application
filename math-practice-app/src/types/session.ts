@@ -19,6 +19,7 @@ export interface PracticeAttempt {
   selfReportedCorrect: boolean;
   difficulty: DifficultyLevel;
   source: QuestionSource;
+  mistakePatternId?: string;
   attemptedAt: string;
   sessionId: string;
 }
@@ -33,4 +34,5 @@ export interface PracticeSession {
   attempted: number;
   correct: number;
   incorrect: number;
+  mode?: ReviewMode;
 }

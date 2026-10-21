@@ -1,6 +1,12 @@
 import type { AppSettings } from '../../types/settings';
 import { DEFAULT_APP_SETTINGS } from '../../types/settings';
-import type { PracticeAttempt, PracticeSession } from '../../types';
+import type {
+  DifficultyLevel,
+  MathOperation,
+  MistakePattern,
+  PracticeAttempt,
+  PracticeSession,
+} from '../../types';
 import { runStorageMigrations } from './migrations';
 import {
   MAX_STORED_ATTEMPTS,
@@ -14,6 +20,7 @@ import {
 } from './storageService';
 import {
   sanitizeAppSettings,
+  sanitizeMistakePatterns,
   sanitizePracticeAttempts,
   sanitizePracticeSessions,
 } from './validators';
@@ -22,6 +29,7 @@ let migrationsInitialized = false;
 let memorySettings: AppSettings | null = null;
 let memorySessions: PracticeSession[] = [];
 let memoryAttempts: PracticeAttempt[] = [];
+let memoryMistakePatterns: MistakePattern[] | null = null;
 
 function ensureMigrations(): void {
   if (migrationsInitialized) {
@@ -152,6 +160,143 @@ export function saveSessionAttempts(
   return saveSession(session);
 }
 
+export function createMistakePatternId(
+  operation: MathOperation,
+  firstOperand: number,
+  secondOperand: number,
+  difficulty: DifficultyLevel,
+): string {
+  return `mistake-${operation}-${firstOperand}-${secondOperand}-${difficulty}`;
+}
+
+export function loadMistakePatterns(): MistakePattern[] {
+  ensureMigrations();
+
+  if (memoryMistakePatterns) {
+    return memoryMistakePatterns.map((pattern) => ({ ...pattern }));
+  }
+
+  const result = readJsonItem<unknown>(STORAGE_KEYS.mistakePatterns);
+
+  if (!result.success || !result.data) {
+    memoryMistakePatterns = [];
+    return [];
+  }
+
+  const patterns = sanitizeMistakePatterns(result.data);
+  memoryMistakePatterns = patterns;
+  return patterns.map((pattern) => ({ ...pattern }));
+}
+
+export function saveMistakePatterns(
+  patterns: MistakePattern[],
+): StorageWriteResult {
+  ensureMigrations();
+  memoryMistakePatterns = patterns.map((pattern) => ({ ...pattern }));
+  return writeJsonItem(STORAGE_KEYS.mistakePatterns, patterns);
+}
+
+export function saveMistakePattern(
+  pattern: MistakePattern,
+): StorageWriteResult {
+  const patterns = loadMistakePatterns();
+  const existingIndex = patterns.findIndex((p) => p.id === pattern.id);
+
+  if (existingIndex >= 0) {
+    patterns[existingIndex] = { ...pattern };
+  } else {
+    patterns.push({ ...pattern });
+  }
+
+  return saveMistakePatterns(patterns);
+}
+
+export function recordAttemptMistake(
+  attempt: PracticeAttempt,
+): StorageWriteResult {
+  const patterns = loadMistakePatterns();
+  const patternId = createMistakePatternId(
+    attempt.operation,
+    attempt.firstOperand,
+    attempt.secondOperand,
+    attempt.difficulty,
+  );
+  const existingIndex = patterns.findIndex(
+    (p) =>
+      p.id === patternId ||
+      (p.operation === attempt.operation &&
+        p.firstOperand === attempt.firstOperand &&
+        p.secondOperand === attempt.secondOperand &&
+        p.difficulty === attempt.difficulty),
+  );
+
+  if (existingIndex >= 0) {
+    const existing = patterns[existingIndex];
+    patterns[existingIndex] = {
+      ...existing,
+      incorrectCount: existing.incorrectCount + 1,
+      lastIncorrectAt: attempt.attemptedAt,
+      similarCorrectCount: 0,
+      mastered: false,
+    };
+  } else {
+    patterns.push({
+      id: patternId,
+      operation: attempt.operation,
+      firstOperand: attempt.firstOperand,
+      secondOperand: attempt.secondOperand,
+      correctAnswer: attempt.correctAnswer,
+      difficulty: attempt.difficulty,
+      incorrectCount: 1,
+      similarCorrectCount: 0,
+      lastIncorrectAt: attempt.attemptedAt,
+      mastered: false,
+    });
+  }
+
+  return saveMistakePatterns(patterns);
+}
+
+export function recordMistakeReviewResult(
+  patternId: string,
+  selfReportedCorrect: boolean,
+  masteryThreshold = 3,
+): StorageWriteResult {
+  const patterns = loadMistakePatterns();
+  const existingIndex = patterns.findIndex((p) => p.id === patternId);
+
+  if (existingIndex < 0) {
+    return { success: true };
+  }
+
+  const existing = patterns[existingIndex];
+
+  if (selfReportedCorrect) {
+    const nextCount = existing.similarCorrectCount + 1;
+    patterns[existingIndex] = {
+      ...existing,
+      similarCorrectCount: nextCount,
+      mastered: nextCount >= masteryThreshold,
+    };
+  } else {
+    patterns[existingIndex] = {
+      ...existing,
+      incorrectCount: existing.incorrectCount + 1,
+      similarCorrectCount: 0,
+      lastIncorrectAt: new Date().toISOString(),
+      mastered: false,
+    };
+  }
+
+  return saveMistakePatterns(patterns);
+}
+
+export function clearMistakePatterns(): StorageWriteResult {
+  ensureMigrations();
+  memoryMistakePatterns = [];
+  return writeJsonItem(STORAGE_KEYS.mistakePatterns, []);
+}
+
 export function clearPracticeHistory(): StorageWriteResult {
   ensureMigrations();
 
@@ -176,6 +321,7 @@ export function clearAllApplicationData(): StorageWriteResult {
 
   memorySessions = [];
   memoryAttempts = [];
+  memoryMistakePatterns = [];
   memorySettings = { ...DEFAULT_APP_SETTINGS };
 
   const writeResults: StorageWriteResult[] = [
@@ -195,4 +341,5 @@ export function resetPracticeDataStoreForTests(): void {
   memorySettings = null;
   memorySessions = [];
   memoryAttempts = [];
+  memoryMistakePatterns = null;
 }

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { ButtonLink } from '../components/common/ButtonLink';
@@ -12,11 +13,17 @@ import {
   isValidSessionSummaryState,
   sessionToPracticeSetup,
 } from '../types';
+import { loadMistakePatterns } from '../services/storage/practiceDataStore';
+import { getActiveMistakePatterns } from '../services/mistakePriority';
 import './SessionSummaryPage.css';
 
 export function SessionSummaryPage() {
   const location = useLocation();
   const summaryState = location.state;
+
+  const activeMistakesCount = useMemo(() => {
+    return getActiveMistakePatterns(loadMistakePatterns()).length;
+  }, []);
 
   if (!isValidSessionSummaryState(summaryState)) {
     return <Navigate to="/" replace />;
@@ -96,19 +103,35 @@ export function SessionSummaryPage() {
         >
           Practice Again
         </ButtonLink>
-        <div className="session-summary__disabled-action">
-          <Button
+        {activeMistakesCount > 0 ? (
+          <ButtonLink
+            to="/practice/session"
+            state={{
+              operations: session.operations,
+              difficulty: session.difficulty,
+              sessionLength: session.sessionLength,
+              mode: 'mistake-review',
+            }}
             variant="coral"
             block
-            disabled
-            aria-describedby="mistake-review-help"
           >
-            Practice Mistakes
-          </Button>
-          <p id="mistake-review-help" className="session-summary__help">
-            No saved mistakes are available to review yet.
-          </p>
-        </div>
+            Practice Mistakes ({activeMistakesCount})
+          </ButtonLink>
+        ) : (
+          <div className="session-summary__disabled-action">
+            <Button
+              variant="coral"
+              block
+              disabled
+              aria-describedby="mistake-review-help"
+            >
+              Practice Mistakes
+            </Button>
+            <p id="mistake-review-help" className="session-summary__help">
+              No saved mistakes are available to review yet.
+            </p>
+          </div>
+        )}
         <ButtonLink to="/practice/setup" variant="sun" block>
           Change Settings
         </ButtonLink>

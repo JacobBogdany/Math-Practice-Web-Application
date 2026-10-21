@@ -3,9 +3,13 @@ import { useAppSettings } from '../context/useAppSettings';
 import {
   clearPracticeHistory,
   loadAttempts,
+  loadMistakePatterns,
   loadSessions,
 } from '../services/storage/practiceDataStore';
-import { calculateAppStatistics } from '../services/statisticsService';
+import {
+  calculateAppStatistics,
+  calculateMistakeStatistics,
+} from '../services/statisticsService';
 import type { PracticeSession } from '../types';
 
 function sortSessionsNewestFirst(
@@ -37,8 +41,19 @@ export function useStatistics() {
     [attempts],
   );
 
+  const mistakePatterns = useMemo(() => {
+    void refreshKey;
+    return loadMistakePatterns();
+  }, [refreshKey]);
+
+  const mistakeStatistics = useMemo(
+    () => calculateMistakeStatistics(mistakePatterns, attempts),
+    [mistakePatterns, attempts],
+  );
+
   const hasAttempts = attempts.length > 0;
   const hasSessions = sessions.length > 0;
+  const hasMistakes = mistakePatterns.length > 0;
 
   const refreshStatistics = useCallback(() => {
     setRefreshKey((current) => current + 1);
@@ -58,10 +73,13 @@ export function useStatistics() {
 
   return {
     statistics,
+    mistakeStatistics,
+    mistakePatterns,
     sessions,
     attempts,
     hasAttempts,
     hasSessions,
+    hasMistakes,
     resetStatistics,
     refreshStatistics,
   };

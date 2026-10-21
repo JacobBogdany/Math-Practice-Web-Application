@@ -6,6 +6,7 @@ import type {
   PracticeSession,
   SessionLength,
 } from '../../types/session';
+import type { MistakePattern } from '../../types/mistake';
 
 const ALL_OPERATIONS: MathOperation[] = [
   'addition',
@@ -119,7 +120,10 @@ export function isValidPracticeSession(
     isSessionLength(session.sessionLength) &&
     typeof session.attempted === 'number' &&
     typeof session.correct === 'number' &&
-    typeof session.incorrect === 'number'
+    typeof session.incorrect === 'number' &&
+    (session.mode === undefined ||
+      session.mode === 'regular' ||
+      session.mode === 'mistake-review')
   );
 }
 
@@ -143,6 +147,8 @@ export function isValidPracticeAttempt(
     typeof attempt.selfReportedCorrect === 'boolean' &&
     isDifficultyLevel(attempt.difficulty) &&
     (attempt.source === 'regular' || attempt.source === 'mistake-review') &&
+    (attempt.mistakePatternId === undefined ||
+      typeof attempt.mistakePatternId === 'string') &&
     typeof attempt.attemptedAt === 'string' &&
     typeof attempt.sessionId === 'string'
   );
@@ -162,4 +168,35 @@ export function sanitizePracticeAttempts(value: unknown): PracticeAttempt[] {
   }
 
   return value.filter(isValidPracticeAttempt);
+}
+
+export function isValidMistakePattern(value: unknown): value is MistakePattern {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const pattern = value as MistakePattern;
+
+  return (
+    typeof pattern.id === 'string' &&
+    isMathOperation(pattern.operation) &&
+    typeof pattern.firstOperand === 'number' &&
+    typeof pattern.secondOperand === 'number' &&
+    typeof pattern.correctAnswer === 'number' &&
+    isDifficultyLevel(pattern.difficulty) &&
+    typeof pattern.incorrectCount === 'number' &&
+    pattern.incorrectCount >= 0 &&
+    typeof pattern.similarCorrectCount === 'number' &&
+    pattern.similarCorrectCount >= 0 &&
+    typeof pattern.lastIncorrectAt === 'string' &&
+    typeof pattern.mastered === 'boolean'
+  );
+}
+
+export function sanitizeMistakePatterns(value: unknown): MistakePattern[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(isValidMistakePattern);
 }

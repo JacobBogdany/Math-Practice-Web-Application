@@ -6,6 +6,22 @@ export interface OperationStatistics {
   incorrect: number;
 }
 
+export interface MistakeFactSummary {
+  patternId: string;
+  factText: string;
+  operation: MathOperation;
+  incorrectCount: number;
+}
+
+export interface MistakeSummaryStatistics {
+  activePatternsCount: number;
+  masteredPatternsCount: number;
+  similarPracticedCount: number;
+  reviewCorrectCount: number;
+  mostMissedOperation: MathOperation | null;
+  mostMissedFacts: MistakeFactSummary[];
+}
+
 export interface AppStatistics {
   attempted: number;
   correct: number;

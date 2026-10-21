@@ -6,6 +6,7 @@ import { AppSettingsProvider } from '../context/AppSettingsProvider';
 import {
   loadSettings,
   resetPracticeDataStoreForTests,
+  saveMistakePattern,
   saveSettings,
 } from '../services/storage/practiceDataStore';
 import { setStorageAdapter } from '../services/storage/storageService';
@@ -138,6 +139,46 @@ describe('PracticeSetupPage', () => {
     const stored = loadSettings();
     expect(stored.defaultOperations).toEqual(['multiplication']);
     expect(stored.defaultDifficulty).toBe(4);
+  });
+
+  it('handles mistake review mode state properly based on available mistakes', async () => {
+    const user = userEvent.setup();
+
+    // When no mistakes exist
+    const { unmount } = renderSetupPage();
+    const mistakeReviewRadio = screen.getByRole('radio', {
+      name: /mistake review/i,
+    });
+    expect(mistakeReviewRadio).toBeDisabled();
+    expect(
+      screen.getByText(/no active mistakes available to review yet/i),
+    ).toBeInTheDocument();
+    unmount();
+
+    // Seed active mistake pattern
+    saveMistakePattern({
+      id: 'pattern-1',
+      operation: 'addition',
+      firstOperand: 4,
+      secondOperand: 5,
+      correctAnswer: 9,
+      difficulty: 1,
+      incorrectCount: 1,
+      similarCorrectCount: 0,
+      lastIncorrectAt: '2026-01-01T00:00:00.000Z',
+      mastered: false,
+    });
+
+    renderSetupPage();
+    const activeRadio = screen.getByRole('radio', { name: /mistake review/i });
+    expect(activeRadio).not.toBeDisabled();
+    expect(screen.getAllByText(/1 active/i).length).toBeGreaterThan(0);
+
+    await user.click(activeRadio);
+    expect(activeRadio).toBeChecked();
+    expect(
+      screen.getByRole('button', { name: /start session/i }),
+    ).not.toBeDisabled();
   });
 });
 

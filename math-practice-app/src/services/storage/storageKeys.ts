@@ -9,4 +9,3 @@ export const STORAGE_KEYS = {
 
 export const MAX_STORED_SESSIONS = 100;
 export const MAX_STORED_ATTEMPTS = 5000;
-

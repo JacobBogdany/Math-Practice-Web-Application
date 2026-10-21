@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSettings } from '../context/useAppSettings';
 import {
+  loadMistakePatterns,
+  recordAttemptMistake,
+  recordMistakeReviewResult,
   saveAttempt,
   saveSession,
 } from '../services/storage/practiceDataStore';
@@ -9,6 +12,11 @@ import {
   generateQuestionFromOperations,
   getQuestionSignature,
 } from '../services/questionGenerator';
+import { generateSimilarQuestion } from '../services/similarQuestionGenerator';
+import {
+  getActiveMistakePatterns,
+  prioritizeMistakePatterns,
+} from '../services/mistakePriority';
 import type {
   PracticeAttempt,
   PracticeSession,
@@ -39,6 +47,7 @@ type PracticeSessionAction =
       question: Question;
       selectedAnswer: number;
       selfReportedCorrect: boolean;
+      masteryThreshold: number;
     }
   | { type: 'REQUEST_END_SESSION' }
   | { type: 'CLEAR_TRANSITION' };
@@ -50,14 +59,45 @@ function createInitialSession(config: PracticeSetupConfig): PracticeSession {
     operations: config.operations,
     difficulty: config.difficulty,
     sessionLength: config.sessionLength,
+    mode: config.mode ?? 'regular',
     attempted: 0,
     correct: 0,
     incorrect: 0,
   };
 }
 
+function getNextQuestionForSession(
+  config: PracticeSetupConfig,
+  recentSignatures: string[],
+): Question {
+  if (config.mode === 'mistake-review') {
+    const allPatterns = loadMistakePatterns();
+    const activePatterns = getActiveMistakePatterns(allPatterns);
+
+    if (activePatterns.length > 0) {
+      const prioritized = prioritizeMistakePatterns(activePatterns);
+
+      for (const pattern of prioritized) {
+        const question = generateSimilarQuestion(pattern);
+        const sig = getQuestionSignature(question);
+        if (!recentSignatures.includes(sig)) {
+          return question;
+        }
+      }
+
+      return generateSimilarQuestion(prioritized[0]);
+    }
+  }
+
+  return generateQuestionFromOperations(
+    config.operations,
+    config.difficulty,
+    recentSignatures,
+  );
+}
+
 function createInitialQuestion(config: PracticeSetupConfig): Question {
-  return generateQuestionFromOperations(config.operations, config.difficulty);
+  return getNextQuestionForSession(config, []);
 }
 
 function practiceSessionReducer(
@@ -77,9 +117,26 @@ function practiceSessionReducer(
         selfReportedCorrect: action.selfReportedCorrect,
         difficulty: action.question.difficulty,
         source: action.question.source,
+        mistakePatternId: action.question.mistakePatternId,
         attemptedAt: new Date().toISOString(),
         sessionId: state.session.id,
       };
+
+      if (
+        action.question.source === 'mistake-review' &&
+        action.question.mistakePatternId
+      ) {
+        recordMistakeReviewResult(
+          action.question.mistakePatternId,
+          action.selfReportedCorrect,
+          action.masteryThreshold,
+        );
+      } else if (
+        action.question.source === 'regular' &&
+        !action.selfReportedCorrect
+      ) {
+        recordAttemptMistake(attempt);
+      }
 
       const updatedSession: PracticeSession = {
         ...state.session,
@@ -109,9 +166,13 @@ function practiceSessionReducer(
         };
       }
 
-      const nextQuestion = generateQuestionFromOperations(
-        updatedSession.operations,
-        updatedSession.difficulty,
+      const nextQuestion = getNextQuestionForSession(
+        {
+          operations: updatedSession.operations,
+          difficulty: updatedSession.difficulty,
+          sessionLength: updatedSession.sessionLength,
+          mode: updatedSession.mode,
+        },
         recentQuestionSignatures,
       );
 
@@ -150,7 +211,7 @@ function practiceSessionReducer(
 
 export function usePracticeSession(config: PracticeSetupConfig) {
   const navigate = useNavigate();
-  const { reportStorageError } = useAppSettings();
+  const { settings, reportStorageError } = useAppSettings();
   const initialQuestion = useMemo(
     () => createInitialQuestion(config),
     [config],
@@ -240,9 +301,10 @@ export function usePracticeSession(config: PracticeSetupConfig) {
         question,
         selectedAnswer,
         selfReportedCorrect,
+        masteryThreshold: settings.masteryThreshold,
       });
     },
-    [state.isActive],
+    [settings.masteryThreshold, state.isActive],
   );
 
   const endSession = useCallback(() => {

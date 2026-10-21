@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { PracticeAttempt } from '../types';
+import type { MistakePattern, PracticeAttempt } from '../types';
 import {
   calculateAppStatistics,
+  calculateMistakeStatistics,
   calculateOperationAccuracy,
   calculateOverallAccuracy,
 } from './statisticsService';
@@ -102,5 +103,68 @@ describe('statisticsService', () => {
     });
     expect(calculateOperationAccuracy(statistics.byDifficulty[2])).toBe(50);
   });
-});
 
+  it('calculates mistake review statistics and identifies frequent missed areas', () => {
+    const patterns: MistakePattern[] = [
+      {
+        id: 'p1',
+        operation: 'multiplication',
+        firstOperand: 7,
+        secondOperand: 8,
+        correctAnswer: 56,
+        difficulty: 2,
+        incorrectCount: 4,
+        similarCorrectCount: 1,
+        lastIncorrectAt: '2026-01-02T00:00:00.000Z',
+        mastered: false,
+      },
+      {
+        id: 'p2',
+        operation: 'multiplication',
+        firstOperand: 6,
+        secondOperand: 9,
+        correctAnswer: 54,
+        difficulty: 2,
+        incorrectCount: 2,
+        similarCorrectCount: 3,
+        lastIncorrectAt: '2026-01-01T00:00:00.000Z',
+        mastered: true,
+      },
+      {
+        id: 'p3',
+        operation: 'division',
+        firstOperand: 24,
+        secondOperand: 6,
+        correctAnswer: 4,
+        difficulty: 2,
+        incorrectCount: 1,
+        similarCorrectCount: 0,
+        lastIncorrectAt: '2026-01-01T00:00:00.000Z',
+        mastered: false,
+      },
+    ];
+
+    const reviewAttempts: PracticeAttempt[] = [
+      {
+        ...attempts[0],
+        source: 'mistake-review',
+        selfReportedCorrect: true,
+      },
+      {
+        ...attempts[1],
+        source: 'mistake-review',
+        selfReportedCorrect: false,
+      },
+    ];
+
+    const stats = calculateMistakeStatistics(patterns, reviewAttempts);
+
+    expect(stats.activePatternsCount).toBe(2);
+    expect(stats.masteredPatternsCount).toBe(1);
+    expect(stats.similarPracticedCount).toBe(2);
+    expect(stats.reviewCorrectCount).toBe(1);
+    expect(stats.mostMissedOperation).toBe('multiplication');
+    expect(stats.mostMissedFacts[0].factText).toBe('7 × 8 = 56');
+    expect(stats.mostMissedFacts[0].incorrectCount).toBe(4);
+  });
+});

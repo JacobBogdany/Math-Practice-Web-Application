@@ -6,6 +6,7 @@ import { AppSettingsProvider } from '../context/AppSettingsProvider';
 import {
   resetPracticeDataStoreForTests,
   saveAttempt,
+  saveMistakePattern,
   saveSession,
 } from '../services/storage/practiceDataStore';
 import { setStorageAdapter } from '../services/storage/storageService';
@@ -151,5 +152,55 @@ describe('StatisticsPage', () => {
     expect(
       screen.getByRole('button', { name: /reset statistics/i }),
     ).toBeDisabled();
+  });
+
+  it('displays mistake analytics and details with active and mastered tabs', async () => {
+    const user = userEvent.setup();
+    saveMistakePattern({
+      id: 'pattern-active-1',
+      operation: 'multiplication',
+      firstOperand: 7,
+      secondOperand: 8,
+      correctAnswer: 56,
+      difficulty: 2,
+      incorrectCount: 3,
+      similarCorrectCount: 1,
+      lastIncorrectAt: '2026-01-15T10:00:00.000Z',
+      mastered: false,
+    });
+    saveMistakePattern({
+      id: 'pattern-mastered-1',
+      operation: 'addition',
+      firstOperand: 9,
+      secondOperand: 4,
+      correctAnswer: 13,
+      difficulty: 1,
+      incorrectCount: 2,
+      similarCorrectCount: 3,
+      lastIncorrectAt: '2026-01-14T10:00:00.000Z',
+      mastered: true,
+    });
+
+    renderStatisticsPage();
+
+    expect(
+      screen.getByRole('heading', { name: /mistake & review analytics/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /mistake details & mastery/i }),
+    ).toBeInTheDocument();
+
+    // Most missed operation
+    expect(screen.getAllByText('Multiplication').length).toBeGreaterThan(0);
+
+    // Facts and Details
+    expect(screen.getAllByText('7 × 8 = 56').length).toBeGreaterThan(0);
+    expect(screen.getByText(/3 times/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 3 similar correct/i)).toBeInTheDocument();
+
+    // Switch to Mastered tab
+    await user.click(screen.getByRole('tab', { name: /mastered/i }));
+    expect(screen.getAllByText('9 + 4 = 13').length).toBeGreaterThan(0);
+    expect(screen.getByText(/mastered ✓/i)).toBeInTheDocument();
   });
 });

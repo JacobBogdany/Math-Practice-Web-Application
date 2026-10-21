@@ -1,10 +1,11 @@
 import type { DifficultyLevel, MathOperation } from './question';
-import type { SessionLength } from './session';
+import type { ReviewMode, SessionLength } from './session';
 
 export interface PracticeSetupConfig {
   operations: MathOperation[];
   difficulty: DifficultyLevel;
   sessionLength: SessionLength;
+  mode?: ReviewMode;
 }
 
 const ALL_OPERATIONS: MathOperation[] = [
@@ -32,6 +33,9 @@ export function isValidPracticeSetupConfig(
     [1, 2, 3, 4].includes(config.difficulty) &&
     ([5, 10, 20, 'continuous'] as SessionLength[]).includes(
       config.sessionLength,
-    )
+    ) &&
+    (config.mode === undefined ||
+      config.mode === 'regular' ||
+      config.mode === 'mistake-review')
   );
 }

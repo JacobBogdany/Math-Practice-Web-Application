@@ -1,8 +1,41 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  resetPracticeDataStoreForTests,
+  saveMistakePattern,
+} from '../services/storage/practiceDataStore';
+import { setStorageAdapter } from '../services/storage/storageService';
 import type { SessionSummaryState } from '../types';
 import { SessionSummaryPage } from './SessionSummaryPage';
+
+class MemoryStorage implements Storage {
+  private store = new Map<string, string>();
+
+  get length() {
+    return this.store.size;
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+
+  getItem(key: string): string | null {
+    return this.store.get(key) ?? null;
+  }
+
+  key(index: number): string | null {
+    return Array.from(this.store.keys())[index] ?? null;
+  }
+
+  removeItem(key: string): void {
+    this.store.delete(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.store.set(key, value);
+  }
+}
 
 const summaryState: SessionSummaryState = {
   session: {
@@ -57,6 +90,11 @@ function renderSummary(state: SessionSummaryState | null = summaryState) {
 }
 
 describe('SessionSummaryPage', () => {
+  beforeEach(() => {
+    setStorageAdapter(new MemoryStorage());
+    resetPracticeDataStoreForTests();
+  });
+
   it('displays session statistics and configuration details', () => {
     renderSummary();
 
@@ -95,5 +133,28 @@ describe('SessionSummaryPage', () => {
       'href',
       '/',
     );
+  });
+
+  it('enables practice mistakes button when active mistakes exist', () => {
+    saveMistakePattern({
+      id: 'pattern-1',
+      operation: 'multiplication',
+      firstOperand: 6,
+      secondOperand: 7,
+      correctAnswer: 42,
+      difficulty: 2,
+      incorrectCount: 1,
+      similarCorrectCount: 0,
+      lastIncorrectAt: '2026-01-01T00:00:00.000Z',
+      mastered: false,
+    });
+
+    renderSummary();
+
+    const practiceMistakesLink = screen.getByRole('link', {
+      name: /practice mistakes \(1\)/i,
+    });
+    expect(practiceMistakesLink).toBeInTheDocument();
+    expect(practiceMistakesLink).toHaveAttribute('href', '/practice/session');
   });
 });
